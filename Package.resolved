@@ -32,9 +32,9 @@
         "package": "StreamKit",
         "repositoryURL": "https://github.com/hrietmann/StreamKit.git",
         "state": {
-          "branch": null,
-          "revision": "9de5938e1debdaa8221771c2a4fc0ba41bc259cf",
-          "version": "1.0.0"
+          "branch": "main",
+          "revision": "4f72034637ae1a0a76e7e596d2f9347afdbf2b37",
+          "version": null
         }
       },
       {
@@ -53,6 +53,15 @@
           "branch": null,
           "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
           "version": "1.0.2"
+        }
+      },
+      {
+        "package": "swift-nio-zlib-support",
+        "repositoryURL": "https://github.com/apple/swift-nio-zlib-support.git",
+        "state": {
+          "branch": null,
+          "revision": "37760e9a52030bb9011972c5213c3350fa9d41fd",
+          "version": "1.0.0"
         }
       },
       {
