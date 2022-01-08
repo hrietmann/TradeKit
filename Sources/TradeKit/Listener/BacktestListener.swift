@@ -69,11 +69,13 @@ actor BacktestListener: Listener {
                 
                 let totalMinutesDone = minuteIndex + minutesDone
                 guard totalMinutesDone % 1000 == 0, totalMinutesDone != 0 else { continue }
+                #if os(Linux) == false
                 let percent = Double(totalMinutesDone) / Double(minutesToDo)
                 let loopDuration = Calendar.GMT0.dateComponents([.hour, .minute, .second, .nanosecond], from: loopStart, to: Date())
                 let duration = DateComponentsFormatter.localizedString(from: loopDuration, unitsStyle: .brief)!
                 logInfo("Backtest \(percent.percent) done, \(totalMinutesDone) / \(minutesToDo) minutes. (took \(duration))")
                 loopStart = Date()
+                #endif
             }
             minutesDone += range.count
             chunkBuffer = .init(uniqueKeysWithValues: candles.map { (key: $0.key, value: Deque<Candle?>.init($0.value.suffix(windowSize))) })
@@ -109,9 +111,12 @@ actor BacktestListener: Listener {
                 
                 // 3. Download next batch of candles
                 loopStart = Date()
+                #if os(Linux) == false
                 let start = DateFormatter.localizedString(from: bufferRange.lowerBound, dateStyle: .full, timeStyle: .full)
                 let end = DateFormatter.localizedString(from: bufferRange.upperBound, dateStyle: .full, timeStyle: .full)
                 log(level: .level0, as: .downloading, "Downloading \(bufferSize) candles for each \(assets.count) assets from \(start) to \(end)...")
+                #endif
+                
                 try await assets
                     .concurrentForEach { (symbol, asset) in
                         let batches = self.broker.historicData(of: .candles(of: asset, from: bufferRange.lowerBound, to: bufferRange.upperBound, each: .minute))
@@ -121,10 +126,13 @@ actor BacktestListener: Listener {
                             batch.candles?.forEach { buffer[$0.date]?[symbol] = $0 }
                         }
                     }
+                
+                #if os(Linux) == false
                 let loopDuration = Calendar.GMT0.dateComponents([.hour, .minute, .second, .nanosecond], from: loopStart, to: Date())
                 let duration = DateComponentsFormatter.localizedString(from: loopDuration, unitsStyle: .brief)!
                 log(level: .level0, as: .majorTaskDone, "Candles downloaded successfully! (took \(duration))")
                 loopStart = Date()
+                #endif
             }
             
             // Create window
@@ -170,11 +178,13 @@ actor BacktestListener: Listener {
             
             // Checkpoint
             guard (minute + 1) % 1000 == 0 else { continue }
+            #if os(Linux) == false
             let percent = Double(minute + 1) / Double(minutes.count)
             let loopDuration = Calendar.GMT0.dateComponents([.hour, .minute, .second, .nanosecond], from: loopStart, to: Date())
             let duration = DateComponentsFormatter.localizedString(from: loopDuration, unitsStyle: .brief)!
             logInfo("Backtest \(percent.percent) done, \(minute + 1) / \(minutes.count) minutes. (took \(duration))")
             loopStart = Date()
+            #endif
         }
     }
     
@@ -182,19 +192,24 @@ actor BacktestListener: Listener {
     
     
     public func listen() async throws {
+        #if os(Linux) == false
         let sessionStart = Date()
         let startDate = DateFormatter.localizedString(from: start, dateStyle: .full, timeStyle: .short)
         let endDate = DateFormatter.localizedString(from: end, dateStyle: .full, timeStyle: .short)
         let assets = await delegate.assets
         log(level: .level0, as: .computing, "Starting backtest from \(startDate) to \(endDate) for assets:", assets.map { $0.key })
+        #endif
         
         let minutes = 0..<(Calendar.GMT0.dateComponents([.minute], from: start, to: end).minute ?? 1)
         //        try await generateTicks(forEach: minutes)
         try await iterate(through: minutes)
         
+        
+        #if os(Linux) == false
         let sessionDuration = Calendar.GMT0.dateComponents([.hour, .minute, .second, .nanosecond], from: sessionStart, to: Date())
         let duration = DateComponentsFormatter.localizedString(from: sessionDuration, unitsStyle: .brief)!
         log(level: .level0, as: .majorTaskDone, "Backtest done in \(duration) !")
+        #endif
         
         
         //        var candlesBuffer = try await candles

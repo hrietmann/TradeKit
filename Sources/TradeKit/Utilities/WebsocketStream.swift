@@ -27,8 +27,8 @@ public final class WebSocketStream: AsyncSequence/*, WebSocketDelegate*/ {
     
     public init(url: String, debug: Bool = false, onConnection: ((WebSocketStream) async throws -> ())? = nil) {
         self.debug = debug
-        var request = URLRequest(url: URL(string: url)!)
-        request.timeoutInterval = 10
+//        var request = URLRequest(url: URL(string: url)!)
+//        request.timeoutInterval = 10
 //        socket = .init(request: request)
         self.onConnection = onConnection
         stream = AsyncThrowingStream { continuation in
@@ -117,7 +117,7 @@ public final class WebSocketStream: AsyncSequence/*, WebSocketDelegate*/ {
 //    }
     
     public func send(_ message: Element) async {
-        guard let string = String(data: message, encoding: .utf8) else { return }//String(decoding: message, as: UTF8.self)
+//        guard let string = String(data: message, encoding: .utf8) else { return }//String(decoding: message, as: UTF8.self)
 //        await withCheckedContinuation { continuation in
 //            socket.write(string: string) { continuation.resume(returning: ()) }
 //        }
