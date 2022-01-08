@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "CodableKit",
+        "repositoryURL": "https://github.com/hrietmann/CodableKit.git",
+        "state": {
+          "branch": "main",
+          "revision": "2ff83783fc7e130d150619d0d563bc85721e1d1c",
+          "version": null
+        }
+      },
+      {
         "package": "CollectionConcurrencyKit",
         "repositoryURL": "https://github.com/JohnSundell/CollectionConcurrencyKit.git",
         "state": {
@@ -11,12 +20,21 @@
         }
       },
       {
-        "package": "Starscream",
-        "repositoryURL": "https://github.com/daltoniam/Starscream.git",
+        "package": "LogKit",
+        "repositoryURL": "https://github.com/hrietmann/LogKit.git",
         "state": {
           "branch": null,
-          "revision": "df8d82047f6654d8e4b655d1b1525c64e1059d21",
-          "version": "4.0.4"
+          "revision": "1e3aa722fdfe6ffd5d1cd59bb93fa74fad095015",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "package": "StreamKit",
+        "repositoryURL": "https://github.com/hrietmann/StreamKit.git",
+        "state": {
+          "branch": null,
+          "revision": "9de5938e1debdaa8221771c2a4fc0ba41bc259cf",
+          "version": "1.0.0"
         }
       },
       {

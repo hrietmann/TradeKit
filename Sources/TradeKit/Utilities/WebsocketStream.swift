@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Starscream
+import StreamKit
 import CodableKit
 import LogKit
 
@@ -53,7 +53,7 @@ public final class WebSocketStream: AsyncSequence, WebSocketDelegate {
         var errorDescription: String? { "Unknown error" }
     }
     
-    public func didReceive(event: WebSocketEvent, client: WebSocket) {
+    public func didReceive(event: WebSocketEvent, client: WebSocketClient) {
         switch event {
         case .connected(let headers):
             isConnected = true
