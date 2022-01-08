@@ -23,7 +23,7 @@ let package = Package(
         .package(url: "https://github.com/JohnSundell/CollectionConcurrencyKit.git", from: "0.2.0"),
         .package(url: "https://github.com/hrietmann/CodableKit.git", branch: "main"),
 //        .package(url: "https://github.com/daltoniam/Starscream.git", from: "4.0.0")
-        .package(url: "https://github.com/hrietmann/StreamKit.git", branch: "main")
+//        .package(url: "https://github.com/hrietmann/StreamKit.git", branch: "main")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -36,7 +36,7 @@ let package = Package(
                 .product(name: "CollectionConcurrencyKit", package: "CollectionConcurrencyKit"),
                 .product(name: "CodableKit", package: "CodableKit"),
 //                .product(name: "Starscream", package: "Starscream"),
-                .product(name: "StreamKit", package: "StreamKit")
+//                .product(name: "StreamKit", package: "StreamKit")
             ]),
         .testTarget(
             name: "TradeKitTests",
