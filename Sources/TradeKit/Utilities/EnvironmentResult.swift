@@ -9,7 +9,7 @@ import Foundation
 import LogKit
 
 
-#if os(Linux) == false
+@available(iOS 15, macOS 12, *)
 public struct EnvironmentResult {
     public let initialCash: Double
     public let equity: Double
@@ -112,7 +112,6 @@ public struct EnvironmentResult {
         )
     }
 }
-#endif
 
 
 extension TimeInterval {

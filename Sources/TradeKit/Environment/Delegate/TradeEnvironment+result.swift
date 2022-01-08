@@ -16,6 +16,7 @@ import Algorithms
 extension TradeEnvironment {
     
     
+    @available(iOS 15, macOS 12, *)
     public var result: EnvironmentResult {
         let closedPositions = filledBracketOrders.lazy
         let closedPositionsCount = closedPositions.count

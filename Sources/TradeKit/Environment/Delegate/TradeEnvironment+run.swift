@@ -15,6 +15,7 @@ extension TradeEnvironment {
     
     public func run() async throws {
         try await listner.listen()
+        guard #available(iOS 15, macOS 12, *) else { return }
         result.makeSummaryInConsole()
     }
     
