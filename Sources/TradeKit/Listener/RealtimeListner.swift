@@ -57,3 +57,21 @@ actor RealtimeListner: Listener {
     
     
 }
+
+
+
+
+
+extension AsyncThrowingStream {
+    
+    public var values: [Element] {
+        get async throws {
+            var elements = [Element]()
+            for try await element in self {
+                elements.append(element)
+            }
+            return elements
+        }
+    }
+    
+}
