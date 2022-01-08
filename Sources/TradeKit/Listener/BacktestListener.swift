@@ -70,13 +70,16 @@ actor BacktestListener: Listener {
                 let totalMinutesDone = minuteIndex + minutesDone
                 guard totalMinutesDone % 1000 == 0, totalMinutesDone != 0 else { continue }
                 
+#if os(Linux)
+#else
                 if #available(iOS 15, macOS 12, *) {
                     let percent = Double(totalMinutesDone) / Double(minutesToDo)
-                                    let loopDuration = Calendar.GMT0.dateComponents([.hour, .minute, .second, .nanosecond], from: loopStart, to: Date())
-                                    let duration = DateComponentsFormatter.localizedString(from: loopDuration, unitsStyle: .brief)!
-                                    logInfo("Backtest \(percent.percent) done, \(totalMinutesDone) / \(minutesToDo) minutes. (took \(duration))")
-                                    loopStart = Date()
+                    let loopDuration = Calendar.GMT0.dateComponents([.hour, .minute, .second, .nanosecond], from: loopStart, to: Date())
+                    let duration = DateComponentsFormatter.localizedString(from: loopDuration, unitsStyle: .brief)!
+                    logInfo("Backtest \(percent.percent) done, \(totalMinutesDone) / \(minutesToDo) minutes. (took \(duration))")
+                    loopStart = Date()
                 }
+#endif
             }
             minutesDone += range.count
             chunkBuffer = .init(uniqueKeysWithValues: candles.map { (key: $0.key, value: Deque<Candle?>.init($0.value.suffix(windowSize))) })
@@ -98,13 +101,13 @@ actor BacktestListener: Listener {
         var loopStart = Date()
         for minute in minutes {
             let windowEnd = calendar.date(byAdding: .minute, value: minute, to: start)!
-//            let windowStart = calendar.date(byAdding: .minute, value: -windowSize + 1, to: windowEnd)!
-//            let windowRange = windowStart...windowEnd
+            //            let windowStart = calendar.date(byAdding: .minute, value: -windowSize + 1, to: windowEnd)!
+            //            let windowRange = windowStart...windowEnd
             
             if !bufferRange.contains(windowEnd) {
                 // Update buffer
                 // 1. Remove all candles not in the window range
-//                buffer.removeAll(where: { !windowRange.contains($0.key) })
+                //                buffer.removeAll(where: { !windowRange.contains($0.key) })
                 
                 // 2. Update buffer range
                 let bufferEnd = calendar.date(byAdding: .minute, value: bufferSize, to: windowEnd)!
@@ -112,11 +115,14 @@ actor BacktestListener: Listener {
                 
                 // 3. Download next batch of candles
                 loopStart = Date()
+#if os(Linux)
+#else
                 if #available(iOS 15, macOS 12, *) {
                     let start = DateFormatter.localizedString(from: bufferRange.lowerBound, dateStyle: .full, timeStyle: .full)
-                                    let end = DateFormatter.localizedString(from: bufferRange.upperBound, dateStyle: .full, timeStyle: .full)
-                                    log(level: .level0, as: .downloading, "Downloading \(bufferSize) candles for each \(assets.count) assets from \(start) to \(end)...")
+                    let end = DateFormatter.localizedString(from: bufferRange.upperBound, dateStyle: .full, timeStyle: .full)
+                    log(level: .level0, as: .downloading, "Downloading \(bufferSize) candles for each \(assets.count) assets from \(start) to \(end)...")
                 }
+#endif
                 
                 try await assets
                     .concurrentForEach { (symbol, asset) in
@@ -128,12 +134,15 @@ actor BacktestListener: Listener {
                         }
                     }
                 
+#if os(Linux)
+#else
                 if #available(iOS 15, macOS 12, *) {
                     let loopDuration = Calendar.GMT0.dateComponents([.hour, .minute, .second, .nanosecond], from: loopStart, to: Date())
-                                    let duration = DateComponentsFormatter.localizedString(from: loopDuration, unitsStyle: .brief)!
-                                    log(level: .level0, as: .majorTaskDone, "Candles downloaded successfully! (took \(duration))")
-                                    loopStart = Date()
+                    let duration = DateComponentsFormatter.localizedString(from: loopDuration, unitsStyle: .brief)!
+                    log(level: .level0, as: .majorTaskDone, "Candles downloaded successfully! (took \(duration))")
+                    loopStart = Date()
                 }
+#endif
             }
             
             // Create window
@@ -155,31 +164,33 @@ actor BacktestListener: Listener {
             buffer.removeFirst()
             
             
-//            try await assets.lazy
-//            // 1. Get asset candles that are in the window range
-//                .compactMap { (symbol, asset) -> (AssetSymbol, Asset, ArraySlice<Candle>, Candle)? in
-//                    let window = buffer.lazy.filter({ $0.assetSymbol == symbol && windowRange.contains($0.date) })
-//
-//                    // 2. Filter according to the window count == window size
-//                    guard window.count == windowSize, let candle = window.last else { return nil }
-//                    let candles = window
-//                        .sorted(by: { $0.date < $1.date })
-//                        .map { $0.candle }
-//                    return (symbol, asset, .init(candles), candle.candle)
-//                }
-//
-//            // 3. Call 'generateTick'
-//                .concurrentForEach { (symbol, asset, window, candle) in
-//                    async let equityReq = self.delegate.equity
-//                    async let buyingPowerReq = self.delegate.buyingPower
-//                    let (equity, buyingPower) = await (equityReq, buyingPowerReq)
-//                    let tick = Tick(asset: asset, candle: candle, candles: window, askPrice: candle.high, bidPrice: candle.low, buyingPower: buyingPower, equity: equity)
-//                    try await self.delegate.received(tick: tick)
-//                }
+            //            try await assets.lazy
+            //            // 1. Get asset candles that are in the window range
+            //                .compactMap { (symbol, asset) -> (AssetSymbol, Asset, ArraySlice<Candle>, Candle)? in
+            //                    let window = buffer.lazy.filter({ $0.assetSymbol == symbol && windowRange.contains($0.date) })
+            //
+            //                    // 2. Filter according to the window count == window size
+            //                    guard window.count == windowSize, let candle = window.last else { return nil }
+            //                    let candles = window
+            //                        .sorted(by: { $0.date < $1.date })
+            //                        .map { $0.candle }
+            //                    return (symbol, asset, .init(candles), candle.candle)
+            //                }
+            //
+            //            // 3. Call 'generateTick'
+            //                .concurrentForEach { (symbol, asset, window, candle) in
+            //                    async let equityReq = self.delegate.equity
+            //                    async let buyingPowerReq = self.delegate.buyingPower
+            //                    let (equity, buyingPower) = await (equityReq, buyingPowerReq)
+            //                    let tick = Tick(asset: asset, candle: candle, candles: window, askPrice: candle.high, bidPrice: candle.low, buyingPower: buyingPower, equity: equity)
+            //                    try await self.delegate.received(tick: tick)
+            //                }
             
             // Checkpoint
             guard (minute + 1) % 1000 == 0 else { continue }
             
+#if os(Linux)
+#else
             if #available(iOS 15, macOS 12, *) {
                 let percent = Double(minute + 1) / Double(minutes.count)
                 let loopDuration = Calendar.GMT0.dateComponents([.hour, .minute, .second, .nanosecond], from: loopStart, to: Date())
@@ -187,6 +198,7 @@ actor BacktestListener: Listener {
                 logInfo("Backtest \(percent.percent) done, \(minute + 1) / \(minutes.count) minutes. (took \(duration))")
                 loopStart = Date()
             }
+#endif
         }
     }
     
@@ -195,24 +207,30 @@ actor BacktestListener: Listener {
     
     public func listen() async throws {
         
-            let sessionStart = Date()
+        let sessionStart = Date()
+#if os(Linux)
+#else
         if #available(iOS 15, macOS 12, *) {
             let startDate = DateFormatter.localizedString(from: start, dateStyle: .full, timeStyle: .short)
             let endDate = DateFormatter.localizedString(from: end, dateStyle: .full, timeStyle: .short)
             let assets = await delegate.assets
             log(level: .level0, as: .computing, "Starting backtest from \(startDate) to \(endDate) for assets:", assets.map { $0.key })
         }
+#endif
         
         let minutes = 0..<(Calendar.GMT0.dateComponents([.minute], from: start, to: end).minute ?? 1)
         //        try await generateTicks(forEach: minutes)
         try await iterate(through: minutes)
         
+#if os(Linux)
+#else
         if #available(iOS 15, macOS 12, *) {
             let sessionDuration = Calendar.GMT0.dateComponents([.hour, .minute, .second, .nanosecond], from: sessionStart, to: Date())
             let duration = DateComponentsFormatter.localizedString(from: sessionDuration, unitsStyle: .brief)!
             log(level: .level0, as: .majorTaskDone, "Backtest done in \(duration) !")
             
         }
+#endif
         
         
         //        var candlesBuffer = try await candles

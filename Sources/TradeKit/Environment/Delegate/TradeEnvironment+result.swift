@@ -15,7 +15,8 @@ import Algorithms
 
 extension TradeEnvironment {
     
-    
+    #if os(Linux)
+    #else
     @available(iOS 15, macOS 12, *)
     public var result: EnvironmentResult {
         let closedPositions = filledBracketOrders.lazy
@@ -81,6 +82,7 @@ extension TradeEnvironment {
             duration: Calendar.GMT0.dateComponents([.weekdayOrdinal, .day, .minute, .timeZone, .month, .calendar, .year, .era, .nanosecond, .hour, .quarter, .second, .weekOfYear, .weekOfMonth, .yearForWeekOfYear], from: start, to: self.end ?? .init())
         )
     }
+    #endif
     
     
 }
