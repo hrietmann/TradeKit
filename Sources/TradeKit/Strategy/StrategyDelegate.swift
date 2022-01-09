@@ -9,7 +9,7 @@ import Foundation
 
 
 
-
+#if compiler(>=5.5) && canImport(_Concurrency)
 public protocol StrategyDelegate {
     
     
@@ -25,3 +25,4 @@ public protocol StrategyDelegate {
     
     
 }
+#endif

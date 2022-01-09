@@ -8,7 +8,7 @@
 import Foundation
 
 
-
+#if compiler(>=5.5) && canImport(_Concurrency)
 public protocol Broker {
     
     static func backtest(cash: Double) throws -> Self
@@ -47,3 +47,4 @@ public protocol Broker {
     func realtimeStream(for assets: [Asset]) -> AsyncThrowingStream<RealtimeData, Error>
     
 }
+#endif

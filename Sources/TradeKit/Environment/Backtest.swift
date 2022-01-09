@@ -11,7 +11,7 @@ import CollectionConcurrencyKit
 
 
 
-
+#if compiler(>=5.5) && canImport(_Concurrency)
 public final actor Backtest<B: Broker>: TradeEnvironment {
     
     
@@ -78,3 +78,4 @@ public final actor Backtest<B: Broker>: TradeEnvironment {
     
     
 }
+#endif

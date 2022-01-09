@@ -38,7 +38,9 @@ public protocol ListenerDelegate: Actor {
     
     func received(quote: Quote, of assetSymbol: AssetSymbol)
     
+#if compiler(>=5.5) && canImport(_Concurrency)
     func received(tick: Tick) async throws
+    #endif
     
     
 }

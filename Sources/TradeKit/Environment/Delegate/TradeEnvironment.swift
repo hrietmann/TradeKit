@@ -22,6 +22,8 @@ public protocol TradeEnvironment: StrategyDelegate, ListenerDelegate {
     var orders: Dictionary<UUID, Order> { get set }
     
     // Trade managment
+    #if compiler(>=5.5) && canImport(_Concurrency)
     func place(order: OrderRequestParams, at date: Date) async throws -> Order
+    #endif
     
 }

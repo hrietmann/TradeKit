@@ -13,7 +13,7 @@ import LogKit
 
 
 
-
+#if compiler(>=5.5) && canImport(_Concurrency)
 @available(macOS 12, *)
 public final class WebsocketStream {
     
@@ -146,3 +146,4 @@ public final class WebsocketStream {
     }
     
 }
+#endif

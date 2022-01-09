@@ -10,7 +10,7 @@ import Foundation
 
 
 
-
+#if compiler(>=5.5) && canImport(_Concurrency)
 extension TradeEnvironment {
     
     
@@ -40,3 +40,4 @@ extension TradeEnvironment {
     
     
 }
+#endif

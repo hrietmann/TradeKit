@@ -11,7 +11,7 @@ import LogKit
 
 
 
-
+#if compiler(>=5.5) && canImport(_Concurrency)
 actor RealtimeListner: Listener {
     
     var delegate: ListenerDelegate!
@@ -76,3 +76,4 @@ extension AsyncThrowingStream {
     }
     
 }
+#endif

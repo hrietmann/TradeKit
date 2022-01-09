@@ -14,7 +14,9 @@ public protocol Listener: Actor {
     
     var delegate: ListenerDelegate! { get set }
     
+#if compiler(>=5.5) && canImport(_Concurrency)
     func listen() async throws
+    #endif
     
     
 }

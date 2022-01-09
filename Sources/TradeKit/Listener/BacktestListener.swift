@@ -13,7 +13,7 @@ import Algorithms
 
 
 
-
+#if compiler(>=5.5) && canImport(_Concurrency)
 actor BacktestListener: Listener {
     
     public var ticks = 0
@@ -337,3 +337,4 @@ actor BacktestListener: Listener {
     }
     
 }
+#endif

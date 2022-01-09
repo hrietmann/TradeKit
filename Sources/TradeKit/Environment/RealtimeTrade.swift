@@ -10,7 +10,7 @@ import Collections
 
 
 
-
+#if compiler(>=5.5) && canImport(_Concurrency)
 public final actor RealtimeTrade<B: Broker>: TradeEnvironment {
     
     public let assets: Dictionary<AssetSymbol, Asset>
@@ -63,3 +63,4 @@ public final actor RealtimeTrade<B: Broker>: TradeEnvironment {
     { try await broker.remotelyOrder(order) }
     
 }
+#endif
