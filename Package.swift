@@ -6,14 +6,12 @@ import PackageDescription
 let package = Package(
     name: "TradeKit",
     platforms: [
-        .iOS(SupportedPlatform.IOSVersion.v13),
-        .macOS(SupportedPlatform.MacOSVersion.v10_15)
+        .iOS(SupportedPlatform.IOSVersion.v15),
+        .macOS(SupportedPlatform.MacOSVersion.v12)
     ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
-        .library(
-            name: "TradeKit",
-            targets: ["TradeKit"]),
+        .library(name: "TradeKit", targets: ["TradeKit"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -22,6 +20,10 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.0.0"),
         .package(url: "https://github.com/JohnSundell/CollectionConcurrencyKit.git", from: "0.2.0"),
         .package(url: "https://github.com/hrietmann/CodableKit.git", branch: "main"),
+        
+        // WebSocket client library built on SwiftNIO
+        .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.0.0")
+        
 //        .package(url: "https://github.com/daltoniam/Starscream.git", from: "4.0.0")
 //        .package(url: "https://github.com/hrietmann/StreamKit.git", branch: "main")
     ],
@@ -35,11 +37,14 @@ let package = Package(
                 .product(name: "Algorithms", package: "swift-algorithms"),
                 .product(name: "CollectionConcurrencyKit", package: "CollectionConcurrencyKit"),
                 .product(name: "CodableKit", package: "CodableKit"),
+                .product(name: "WebSocketKit", package: "websocket-kit"),
 //                .product(name: "Starscream", package: "Starscream"),
 //                .product(name: "StreamKit", package: "StreamKit")
-            ]),
+            ]
+        ),
         .testTarget(
             name: "TradeKitTests",
-            dependencies: ["TradeKit"]),
+            dependencies: ["TradeKit"]
+        ),
     ]
 )

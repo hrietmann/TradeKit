@@ -6,133 +6,143 @@
 //
 
 import Foundation
-//import StreamKit
+import WebSocketKit
 import CodableKit
 import LogKit
 
 
 
-public final class WebSocketStream: AsyncSequence/*, WebSocketDelegate*/ {
+
+
+@available(macOS 12, *)
+class WebsocketStream {
     
-    
-    public typealias Element = Data
-    public typealias AsyncIterator = AsyncThrowingStream<Element, Error>.Iterator
-    
+    private let url: String
+    private let event: EventLoopGroup
     private let debug: Bool
-//    private let socket: WebSocket
-    private let onConnection: ((WebSocketStream) async throws -> ())?
-    private var isConnected = false
-    private var stream: AsyncThrowingStream<Element, Error>?
-    private var continuation: AsyncThrowingStream<Element, Error>.Continuation?
+    private var closeRequested = false
+    private let connectionHandler: ((WebSocket) -> Void)?
+    private var textHandler: ((String) -> Void)?
+    private var errorHandler: ((Error) -> Void)?
+    private var closeHandler: (() -> Void)?
     
-    public init(url: String, debug: Bool = false, onConnection: ((WebSocketStream) async throws -> ())? = nil) {
+    
+    public var stream: AsyncThrowingStream<String, Error> {
+         return AsyncThrowingStream { continuation in
+             textHandler = { continuation.yield($0) }
+             errorHandler = { continuation.yield(with: .failure($0)) }
+             closeHandler = { continuation.finish(throwing: nil) }
+             continuation.onTermination = { @Sendable _ in self.close() }
+             connect()
+         }
+     }
+    
+    
+    public init(url: String, on event: EventLoopGroup, debug: Bool = false, connectionHandler: ((WebSocket) -> Void)? = nil) {
+        self.url = url
+        self.event = event
         self.debug = debug
-//        var request = URLRequest(url: URL(string: url)!)
-//        request.timeoutInterval = 10
-//        socket = .init(request: request)
-        self.onConnection = onConnection
-        stream = AsyncThrowingStream { continuation in
-            self.continuation = continuation
-//            self.continuation?.onTermination = { @Sendable [socket] _ in
-//                socket.disconnect()
-//            }
+        self.connectionHandler = connectionHandler
+    }
+    
+
+    func connect() {
+        Task { [weak self] in
+            do { try await self?.handleWebsocket() }
+            catch { self?.errorHandler?(error) }
         }
     }
     
-    deinit { continuation?.finish(throwing: nil) }
-    
-    public func makeAsyncIterator() -> AsyncIterator {
-        guard let stream = stream else { fatalError("Stream not initialized before being utilized.") }
-//        socket.delegate = self
-//        socket.respondToPingWithPong = true
-//        socket.connect()
-        return stream.makeAsyncIterator()
+    private func handleWebsocket() async throws {
+        try await WebSocket.connect(to: url, on: event) { [weak self] websocket async in
+            self?.connectionHandler?(websocket)
+            if self?.debug == true { logInfo("Websocket is connected!") }
+            
+            websocket.onText { websocket, text in
+                do {
+                    guard self?.closeRequested == false else { try await websocket.close() ; return }
+                    self?.textHandler?(text)
+                    guard self?.debug == true else { return }
+                    logInfo("Received text from websocket:", text)
+                } catch {
+                    self?.errorHandler?(error)
+                    guard self?.debug == true else { return }
+                    logInfo("Received error from websocket:", error.localizedDescription)
+                }
+            }
+            
+            websocket.onBinary { websocket, data in
+                do {
+                    guard self?.closeRequested == false else { try await websocket.close() ; return }
+                    let text = String(buffer: data)
+                    self?.textHandler?(text)
+                    guard self?.debug == true else { return }
+                    logInfo("Received data from websocket:", text)
+                } catch {
+                    self?.errorHandler?(error)
+                    guard self?.debug == true else { return }
+                    logInfo("Received error from websocket:", error.localizedDescription)
+                }
+            }
+            
+            websocket.onPong { websocket async in
+                if self?.debug == true { logInfo("PONG received from websocket.") }
+                do {
+                    try await Task.sleep(nanoseconds: 20 * 1_000_000_000)
+                    guard self?.closeRequested == false else { try await websocket.close() ; return }
+                    try await websocket.sendPing()
+                    guard self?.debug == true else { return }
+                    logInfo("PING sent from websocket.")
+                } catch {
+                    self?.errorHandler?(error)
+                    guard self?.debug == true else { return }
+                    logInfo("Received error from websocket:", error.localizedDescription)
+                }
+            }
+            
+            websocket.onPing { websocket async in
+                guard self?.debug == true else { return }
+                logInfo("PING received from websocket.")
+            }
+            websocket.onClose.whenComplete { result in
+                switch result {
+                case .success:
+                    guard self?.closeRequested == false else {
+                        self?.closeHandler?()
+                        guard self?.debug == true else { return }
+                        logInfo("Websocket closed!")
+                        return
+                    }
+                    Task { [weak self] in
+                        do {
+                            try await self?.handleWebsocket()
+                            guard self?.debug == true else { return }
+                            logInfo("Reconnecting websocket...")
+                        } catch {
+                            self?.errorHandler?(error)
+                            guard self?.debug == true else { return }
+                            logInfo("Received error from websocket:", error.localizedDescription)
+                        }
+                    }
+                case .failure(let error):
+                    self?.errorHandler?(error)
+                    guard self?.debug == true else { return }
+                    logInfo("Received error from websocket:", error.localizedDescription)
+                }
+            }
+            
+            do { try await websocket.sendPing() }
+            catch {
+                self?.errorHandler?(error)
+                guard self?.debug == true else { return }
+                logInfo("Received error from websocket:", error.localizedDescription)
+            }
+        }
     }
     
-    private struct UnknownError: LocalizedError {
-        var errorDescription: String? { "Unknown error" }
-    }
-    
-//    public func didReceive(event: WebSocketEvent, client: WebSocketClient) {
-//        switch event {
-//        case .connected(let headers):
-//            isConnected = true
-//            sendPing()
-//            if let onConnection = onConnection {
-//                Task { [weak self] in
-//                    guard let stream = self else { return }
-//                    do { try await onConnection(stream) }
-//                    catch { self?.continuation?.yield(with: .failure(error)) }
-//                }
-//            }
-//            guard debug else { return }
-//            logInfo("Websocket is connected:", headers)
-//
-//        case .disconnected(let reason, let code):
-//            isConnected = false
-//            continuation?.finish(throwing: nil)
-//            guard debug else { return }
-//            logInfo("Websocket is disconnected: \(reason) with code: \(code)")
-//
-//        case .text(let string):
-//            guard let data = string.data(using: .utf8) else { return }
-//            continuation?.yield(data)
-//            guard debug else { return }
-//            logInfo("Received text:", string)
-//
-//        case .binary(let data):
-//            continuation?.yield(data)
-//            guard debug else { return }
-//            logInfo("Received data:", data.prettyJSON)
-//
-//        case .pong:
-//            guard debug else { return }
-//            logInfo("Received PONG")
-//
-//        case .ping:
-//            guard debug else { return }
-//            logInfo("Received PING")
-//
-//        case .error(let error):
-//            isConnected = false
-////            continuation?.yield(with: .failure(error ?? UnknownError()))
-//            socket.connect()
-//            guard debug else { return }
-//            logInfo("Received error:", error?.localizedDescription ?? UnknownError().localizedDescription)
-//
-//        case .viabilityChanged(let viabilityChanged):
-//            guard debug else { return }
-//            logInfo("Viabilibility changed to \(viabilityChanged)")
-//
-//        case .reconnectSuggested(let needsToReconnect):
-//            if needsToReconnect { socket.connect() }
-//            guard debug else { return }
-//            logInfo("Reconnection suggested \(needsToReconnect)")
-//
-//        case .cancelled:
-//            isConnected = false
-//            continuation?.finish(throwing: nil)
-//            logInfo("Websocket is cancelled")
-//        }
-//    }
-    
-    public func send(_ message: Element) async {
-//        guard let string = String(data: message, encoding: .utf8) else { return }//String(decoding: message, as: UTF8.self)
-//        await withCheckedContinuation { continuation in
-//            socket.write(string: string) { continuation.resume(returning: ()) }
-//        }
-    }
-    
-    private func sendPing() {
-        guard isConnected else { return }
-//        socket.write(ping: Data()) { [unowned self] in
-//            Task { [weak self] in
-//                do {
-//                    try await Task.sleep(nanoseconds: 20 * 1_000_000_000)
-//                    self?.sendPing()
-//                } catch { self?.continuation?.finish(throwing: error) }
-//            }
-//        }
+    private func close() {
+        closeRequested = true
+        closeHandler?()
     }
     
 }
