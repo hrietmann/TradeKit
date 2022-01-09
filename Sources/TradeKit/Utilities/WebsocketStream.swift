@@ -15,7 +15,7 @@ import LogKit
 
 
 @available(macOS 12, *)
-class WebsocketStream {
+public final class WebsocketStream {
     
     private let url: String
     private let event: EventLoopGroup
